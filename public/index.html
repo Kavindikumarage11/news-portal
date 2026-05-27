@@ -4,62 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global News Portal</title>
-    <!-- Bootstrap CSS for modern styling -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Card Hover Effect */
+        .news-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+        }
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+        /* Sticky Footer */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .content-wrapper {
+            flex: 1;
+        }
+    </style>
 </head>
 <body class="bg-light">
 
-   <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/index.html">Global News Portal</a>
-            <div class="navbar-nav ms-auto d-flex align-items-center">
-                <a class="nav-link active" href="/index.html">Home</a>
-                <a class="nav-link" href="/about.html">About Us</a>
-                <a class="nav-link" href="/contact.html">Contact Us</a>
-                <a class="btn btn-outline-light btn-sm ms-3" href="/admin.html">Admin Dashboard</a>
+    <div class="content-wrapper">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+            <div class="container">
+                <a class="navbar-brand fw-bold text-uppercase tracking-wider" href="/index.html">🌐 Global News</a>
+                <div class="navbar-nav ms-auto d-flex align-items-center">
+                    <a class="nav-link active fw-semibold" href="/index.html">Home</a>
+                    <a class="nav-link fw-semibold" href="/about.html">About Us</a>
+                    <a class="nav-link fw-semibold" href="/contact.html">Contact Us</a>
+                    <a class="btn btn-danger btn-sm ms-3 fw-bold px-3 rounded-pill shadow-sm" href="/admin.html">Admin Panel</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="bg-dark text-white text-center py-5 mb-5 shadow-sm" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+            <div class="container py-3">
+                <h1 class="display-4 fw-bold">Stay Informed, Stay Ahead</h1>
+                <p class="lead text-white-50">Bringing you trusted, real-time news updates from around the globe.</p>
             </div>
         </div>
-    </nav>
 
-    <!-- News Section Container -->
-    <div class="container my-5">
-        <h2 class="mb-4 text-center fw-bold">Latest News Updates</h2>
-        <hr>
-        <div id="news-container" class="row g-4 mt-2">
-            <!-- News cards will be dynamically generated here from MySQL Database -->
+        <div class="container mb-5">
+            <h2 class="fw-bold mb-4 border-bottom pb-2 text-dark">📰 Latest News Updates</h2>
+            <div id="news-container" class="row g-4">
+                </div>
         </div>
     </div>
 
-    <!-- JavaScript to Fetch Data from Backend (SELECT Operation) -->
+    <footer class="bg-dark text-white-50 text-center py-4 border-top border-secondary">
+        <div class="container">
+            <p class="mb-1 text-white fw-semibold">&copy; 2026 Global News Portal. All Rights Reserved.</p>
+            <small>Designed for Web Application Development Assignment</small>
+        </div>
+    </footer>
+
     <script>
-        fetch('/api/news')
-            .then(response => response.json())
-            .then(newsArticles => {
-                const container = document.getElementById('news-container');
-                if (newsArticles.length === 0) {
-                    container.innerHTML = '<div class="col-10 mx-auto text-center"><p class="text-muted fs-5">No news articles available at the moment.</p></div>';
-                    return;
-                }
-                newsArticles.forEach(news => {
-                    container.innerHTML += `
-                        <div class="col-md-4">
-                            <div class="card h-100 shadow-sm border-0">
-                                <img src="${news.image_url || 'https://via.placeholder.com/300'}" class="card-img-top" alt="news image" style="height: 200px; object-fit: cover;">
-                                <div class="card-body">
-                                    <span class="badge bg-danger mb-2">${news.category.toUpperCase()}</span>
-                                    <h5 class="card-title fw-bold">${news.title}</h5>
-                                    <p class="card-text text-secondary">${news.content.substring(0, 120)}...</p>
-                                </div>
-                                <div class="card-footer bg-white border-0 text-muted small">
-                                    Published: ${new Date(news.created_at).toLocaleDateString()}
+        async function loadNews() {
+            const res = await fetch('/api/news');
+            const newsList = await res.parse ? await res.parse() : await res.json();
+            const container = document.getElementById('news-container');
+            
+            if (newsList.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <p class="text-muted fs-5">No news articles available at the moment.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            newsList.forEach(news => {
+                // If image URL is missing or empty, use a nice placeholder image
+                const imageUrl = news.image_url && news.image_url.trim() !== '' ? news.image_url : 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&auto=format&fit=crop&q=60';
+                
+                // Format Date nicely
+                const date = new Date(news.created_at).toLocaleDateString('en-GB');
+
+                container.innerHTML += `
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm news-card">
+                            <img src="${imageUrl}" class="card-img-top" alt="news" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&auto=format&fit=crop&q=60';">
+                            <div class="card-body d-flex flex-column">
+                                <span class="badge bg-primary align-self-start mb-2 px-2.5 py-1.5 text-uppercase fw-bold text-xs rounded">${news.category}</span>
+                                <h5 class="card-title fw-bold text-dark mb-2">${news.title}</h5>
+                                <p class="card-text text-secondary mb-4">${news.content}</p>
+                                <div class="mt-auto text-muted small fw-medium border-top pt-2">
+                                    🕒 Published: ${date}
                                 </div>
                             </div>
                         </div>
-                    `;
-                });
-            })
-            .catch(error => console.error('Error fetching news:', error));
+                    </div>
+                `;
+            });
+        }
+        loadNews();
     </script>
 </body>
 </html>
